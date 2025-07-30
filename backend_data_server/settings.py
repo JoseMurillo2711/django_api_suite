@@ -13,6 +13,17 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
+import firebase_admin
+from firebase_admin import credentials
+
+
+FIREBASE_CREDENTIALS_PATH = credentials.Certificate("secrets/landing-key.json")
+
+# Inicialice la conexión con el Realtime Database con la clave privada y la URL de referencia
+firebase_admin.initialize_app(FIREBASE_CREDENTIALS_PATH, {
+   'databaseURL': 'https://beautystudio-a0fc3-default-rtdb.firebaseio.com/'
+})
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +53,8 @@ INSTALLED_APPS = [
     "homepage",
     "rest_framework",
     "demo_rest_api",
+    "firebase_admin",
+    "landing_api",
 ]
 
 MIDDLEWARE = [
