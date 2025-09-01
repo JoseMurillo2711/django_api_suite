@@ -39,3 +39,41 @@ class LandingAPI(APIView):
 
       # Devuelve el id del objeto guardado
       return Response({"id": new_resource.key}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, pk=None, format=None):
+        if not pk:
+            return Response({"detail": "PUT sobre colección no permitido. Use /landing/<pk>/"},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        ref = db.reference(f"{self.collection_name}/{pk}")
+        if ref.get() is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        payload = request.data.copy()
+        payload.update({"updated_at": self._now_str()})
+        # set reemplaza completamente el nodo
+        ref.set(payload)
+        return Response({"id": pk, "data": payload}, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk=None, format=None):
+        if not pk:
+            return Response({"detail": "PATCH sobre colección no permitido. Use /landing/<pk>/"},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        ref = db.reference(f"{self.collection_name}/{pk}")
+        if ref.get() is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        payload = request.data.copy()
+        payload.update({"updated_at": self._now_str()})
+        # update hace merge de campos
+        ref.update(payload)
+        updated = ref.get()
+        return Response({"id": pk, "data": updated}, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk=None, format=None):
+        if not pk:
+            # Opcional: podrías permitir borrar todo, pero mejor no por seguridad.
+            return Response({"detail": "Para eliminar un item debe especificar su id (/landing/<pk>/)."},
+                            status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        ref = db.reference(f"{self.collection_name}/{pk}")
+        if ref.get() is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        ref.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
